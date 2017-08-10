@@ -5787,6 +5787,14 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
             Expression e2x = inferType(exp.e2, t1.baseElemOf());
             e2x = e2x.semantic(sc);
             e2x = resolveProperties(sc, e2x);
+<<<<<<< HEAD
+=======
+
+            // For static alias this:  https://issues.dlang.org/show_bug.cgi?id=17684
+            if (e2x.op == TOKtype)
+                e2x = resolveAliasThis(sc, e2x);
+
+>>>>>>> 82efb9929... Fixed static alias this
             if (e2x.op == TOKerror)
             {
                 result = e2x;
@@ -8764,6 +8772,7 @@ Expression binSemantic(BinExp e, Scope* sc)
         return e1x;
     if (e2x.op == TOKerror)
         return e2x;
+
     e.e1 = e1x;
     e.e2 = e2x;
     return null;
@@ -8775,10 +8784,18 @@ Expression binSemanticProp(BinExp e, Scope* sc)
         return ex;
     Expression e1x = resolveProperties(sc, e.e1);
     Expression e2x = resolveProperties(sc, e.e2);
+
     if (e1x.op == TOKerror)
         return e1x;
     if (e2x.op == TOKerror)
         return e2x;
+
+    // For static alias this:  https://issues.dlang.org/show_bug.cgi?id=17684
+    if (e1x.op == TOKtype)
+        e1x = resolveAliasThis(sc, e1x);
+    if (e2x.op == TOKtype)
+        e2x = resolveAliasThis(sc, e2x);
+
     e.e1 = e1x;
     e.e2 = e2x;
     return null;
