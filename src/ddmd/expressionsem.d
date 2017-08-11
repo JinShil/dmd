@@ -3238,6 +3238,11 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
 
     override void visit(BinAssignExp exp)
     {
+        static if (LOGSEMANTIC)
+        {
+            printf("BinAssignExp::semantic(%s)\n", exp.toChars());
+        }
+
         if (exp.type)
         {
             result = exp;
@@ -5782,6 +5787,11 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
             Expression e2x = inferType(exp.e2, t1.baseElemOf());
             e2x = e2x.semantic(sc);
             e2x = resolveProperties(sc, e2x);
+
+            // For static alias this:  https://issues.dlang.org/show_bug.cgi?id=17684
+            if (e2x.op == TOKtype)
+                e2x = resolveAliasThis(sc, e2x);
+
             if (e2x.op == TOKerror)
             {
                 result = e2x;
@@ -6693,13 +6703,17 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
 
     override void visit(CatAssignExp exp)
     {
+        static if (LOGSEMANTIC)
+        {
+            printf("CatAssignExp::semantic(%s)\n", exp.toChars());
+        }
+
         if (exp.type)
         {
             result = exp;
             return;
         }
 
-        //printf("CatAssignExp::semantic() %s\n", toChars());
         Expression e = exp.op_overload(sc);
         if (e)
         {
@@ -7038,7 +7052,11 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
 
     override void visit(CatExp exp)
     {
-        //printf("CatExp::semantic() %s\n", toChars());
+        static if (LOGSEMANTIC)
+        {
+            printf("CatExp::semantic(%s)\n", exp.toChars());
+        }
+
         if (exp.type)
         {
             result = exp;
@@ -8747,10 +8765,12 @@ Expression binSemantic(BinExp e, Scope* sc)
     }
     Expression e1x = e.e1.semantic(sc);
     Expression e2x = e.e2.semantic(sc);
+
     if (e1x.op == TOKerror)
         return e1x;
     if (e2x.op == TOKerror)
         return e2x;
+
     e.e1 = e1x;
     e.e2 = e2x;
     return null;
@@ -8762,10 +8782,125 @@ Expression binSemanticProp(BinExp e, Scope* sc)
         return ex;
     Expression e1x = resolveProperties(sc, e.e1);
     Expression e2x = resolveProperties(sc, e.e2);
+
     if (e1x.op == TOKerror)
         return e1x;
     if (e2x.op == TOKerror)
         return e2x;
+
+    // For static alias this:  https://issues.dlang.org/show_bug.cgi?id=17684
+    if (e1x.op == TOKtype)
+        e1x = resolveAliasThis(sc, e1x);
+    if (e2x.op == TOKtype)
+        e2x = resolveAliasThis(sc, e2x);
+
+    e.e1 = e1x;
+    e.e2 = e2x;
+    return null;
+}
+
+/********************************************************************************
+ * Helper function to resolve `@property` functions in a `BinAssignExp`.
+ * It rewrites expressions of the form, for example, `s.x += 1` to `s.x(s.x() + 1)`
+ * if `s` has a both a getter and setter `@property` named `x`.
+ * Params:
+ *      e = the expression to rewrite
+ *      sc = the semantic scope
+ * Returns:
+ *      the rewritten expression if the procedure succeeds, an `ErrorExp` if the
+ *      and error is encountered, or `null` if `e.e1` is not an `@property` function.
+ */
+Expression binSemanticProp(BinAssignExp e, Scope* sc)
+{
+    if (Expression ex = binSemantic(e, sc))
+        return ex;
+
+    // If we call e.e1.copy() after resolveProperties(sc, e1), it will return the
+    // wrong @property function overload.  So, we copy it here.
+    Expression e1 = e.e1.copy();
+
+    Expression e1x = resolveProperties(sc, e.e1);
+    Expression e2x = resolveProperties(sc, e.e2);
+    if (e1x.op == TOKerror)
+        return e1x;
+    if (e2x.op == TOKerror)
+        return e2x;
+
+    //********************************************************************
+    // Check for property assignment.
+    // https://issues.dlang.org/show_bug.cgi?id=8006
+    if (e1x.op == TOKcall)
+    {
+        CallExp ce = cast(CallExp)e1x;
+
+        // Consider s.x() += 1;
+        // We want to rewrite that expression to s.x(s.x() + 1);
+
+        // Only rewrite @property functions.  Don't rewrite @ref @property functions.
+        // In an effort to be conservative with this change, and avoid breaking existing
+        // usage of ref @property functions, they are excluded from this implementation.
+        // See runnable/test8006.d for a specific idiom that breaks if ref @property
+        // functions are not excluded.
+        auto tf = (ce.e1.type.ty) == Tfunction ? cast(TypeFunction)ce.e1.type : null;
+        if (tf && tf.isproperty && !tf.isref)
+        {
+            // e1x and e2x will eventually be assigned back to the original binary expresion.
+            // Use a temporary variable to avoid sabotaging the original original expression.
+            Expression e2;
+            switch(e.op)
+            {
+                case TOKcatass:
+                    e2 = new CatExp(e.loc, e1x, e2x);
+                    break;
+                case TOKaddass:
+                    e2 = new AddExp(e.loc, e1x, e2x);
+                    break;
+                case TOKminass:
+                    e2 = new MinExp(e.loc, e1x, e2x);
+                    break;
+                case TOKmulass:
+                    e2 = new MulExp(e.loc, e1x, e2x);
+                    break;
+                case TOKdivass:
+                    e2 = new DivExp(e.loc, e1x, e2x);
+                    break;
+                case TOKmodass:
+                    e2 = new ModExp(e.loc, e1x, e2x);
+                    break;
+                case TOKpowass:
+                    e2 = new PowExp(e.loc, e1x, e2x);
+                    break;
+                case TOKandass:
+                    e2 = new AndExp(e.loc, e1x, e2x);
+                    break;
+                case TOKorass:
+                    e2 = new OrExp(e.loc, e1x, e2x);
+                    break;
+                case TOKxorass:
+                    e2 = new XorExp(e.loc, e1x, e2x);
+                    break;
+                case TOKshlass:
+                    e2 = new ShlExp(e.loc, e1x, e2x);
+                    break;
+                case TOKshrass:
+                    e2 = new ShrExp(e.loc, e1x, e2x);
+                    break;
+                case TOKushrass:
+                    e2 = new UshrExp(e.loc, e1x, e2x);
+                    break;
+                default:
+                    assert(false);  // operator was not handled
+            }
+
+            // s.x(e2)
+            auto result = resolvePropertiesX(sc, e1, e2);
+
+            // if result is null, we still need to set e.e1 and e.e2 at the end of this function
+            if (result)
+                return result;
+        }
+    }
+
     e.e1 = e1x;
     e.e2 = e2x;
     return null;
@@ -9396,5 +9531,3 @@ private bool checkAddressVar(Scope* sc, UnaExp exp, VarDeclaration v)
     }
     return true;
 }
-
-
