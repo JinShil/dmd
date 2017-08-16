@@ -376,7 +376,7 @@ void testTStringRet(T)()
 }
 
 /**************************************************************
-* @ref property breakage test
+* ref @property breakage test
 **************************************************************/
 struct TRefInt
 {
@@ -411,6 +411,100 @@ void testRefInt()
     assert(tri1.mX.length == 2);
 }
 
+/**************************************************************
+* Free @property function test
+**************************************************************/
+int mX;
+@property int x() { return mX; }
+@property void x(int v) { mX = v; }
+
+// Test that free @property functions work
+void testFreeFunctionsInt()
+{
+    x += 4;
+    assert(mX == 4);
+    x -= 2;
+    assert(mX == 2);
+    x *= 4;
+    assert(mX == 8);
+    x /= 2;
+    assert(mX == 4);
+    x %= 3;
+    assert(mX == 1);
+    x <<= 3;
+    assert(mX == 8);
+    x >>= 1;
+    assert(mX == 4);
+    x >>>= 1;
+    assert(mX == 2);
+    x &= 0xF;
+    assert(mX == 0x2);
+    x |= 0x8;
+    assert(mX == 0xA);
+    x ^= 0xF;
+    assert(mX == 0x5);
+    x ^^= 2;
+    assert(mX == 25);
+}
+
+int mXret;
+@property int xret() { return mXret; }
+@property int xret(int v) { return mXret = v; }
+
+// Same as testFreeFunctions except the we want to
+// ensure the binary assignment returns a value
+void testFreeFunctionsIntRet()
+{
+    int r;
+    r = xret += 4;
+    assert(r == 4);
+    r = xret -= 2;
+    assert(r == 2);
+    r = xret *= 4;
+    assert(r == 8);
+    r = xret /= 2;
+    assert(r == 4);
+    r = xret %= 3;
+    assert(r == 1);
+    r = xret <<= 3;
+    assert(r == 8);
+    r = xret >>= 1;
+    assert(r == 4);
+    r = xret >>>= 1;
+    assert(r == 2);
+    r = xret &= 0xF;
+    assert(r == 0x2);
+    r = xret |= 0x8;
+    assert(r == 0xA);
+    r = xret ^= 0xF;
+    assert(r == 0x5);
+    r = xret ^^= 2;
+    assert(r == 25);
+}
+
+string mXs;
+@property string xs() { return mXs; }
+@property void xs(string v) { mXs = v; }
+
+void testFreeFunctionsString()
+{
+    xs = "abc";
+    xs ~= "def";
+    assert(mXs == "abcdef");
+}
+
+string mXsret;
+@property string xsret() { return mXsret; }
+@property string xsret(string v) { return mXsret = v; }
+
+void testFreeFunctionsStringRet()
+{
+    string s;
+    xsret = "abc";
+    s = xsret ~= "def";
+    assert(s == "abcdef");
+}
+
 void main()
 {
     testTInt!TInt();
@@ -425,6 +519,12 @@ void main()
 
     testTStringRet!TStringRet();
     testTStringRet!TStringRetStatic();
+
+    testFreeFunctionsInt();
+    testFreeFunctionsIntRet();
+
+    testFreeFunctionsString();
+    testFreeFunctionsStringRet();
 
     testRefInt();
 }
