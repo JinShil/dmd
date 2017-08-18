@@ -5787,11 +5787,16 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
             Expression e2x = inferType(exp.e2, t1.baseElemOf());
             e2x = e2x.semantic(sc);
             e2x = resolveProperties(sc, e2x);
+<<<<<<< HEAD
 
             // For static alias this:  https://issues.dlang.org/show_bug.cgi?id=17684
             if (e2x.op == TOKtype)
                 e2x = resolveAliasThis(sc, e2x);
 
+=======
+            if (e2x.op == TOKtype)
+                e2x = resolveAliasThis(sc, e2x); //https://issues.dlang.org/show_bug.cgi?id=17684
+>>>>>>> 04143c0ae85672b08d6f4e3f29977885acceea0a
             if (e2x.op == TOKerror)
             {
                 result = e2x;
