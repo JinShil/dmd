@@ -483,13 +483,13 @@ extern (C++) class StructDeclaration : AggregateDeclaration
              * Allow this by doing an explicit cast, which will lengthen the string
              * literal.
              */
-            if (e.op == TOK.string_ && tb.ty == Tsarray)
+            if (e.op == TOK.string_ && tb.ty == Type.Kind.staticArray)
             {
                 StringExp se = cast(StringExp)e;
                 Type typeb = se.type.toBasetype();
                 TY tynto = tb.nextOf().ty;
                 if (!se.committed &&
-                    (typeb.ty == Tarray || typeb.ty == Tsarray) &&
+                    (typeb.ty == Type.Kind.array || typeb.ty == Type.Kind.staticArray) &&
                     (tynto == Tchar || tynto == Twchar || tynto == Tdchar) &&
                     se.numberOfCodeUnits(tynto) < (cast(TypeSArray)tb).dim.toInteger())
                 {
@@ -498,7 +498,7 @@ extern (C++) class StructDeclaration : AggregateDeclaration
                 }
             }
 
-            while (!e.implicitConvTo(t) && tb.ty == Tsarray)
+            while (!e.implicitConvTo(t) && tb.ty == Type.Kind.staticArray)
             {
                 /* Static array initialization, as in:
                  *  T[3][5] = e;
@@ -555,7 +555,7 @@ extern (C++) class StructDeclaration : AggregateDeclaration
             }
 
             Type tv = v.type.baseElemOf();
-            if (tv.ty == Tstruct)
+            if (tv.ty == Type.Kind.struct_)
             {
                 TypeStruct ts = cast(TypeStruct)tv;
                 StructDeclaration sd = ts.sym;

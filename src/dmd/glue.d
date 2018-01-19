@@ -738,11 +738,11 @@ void FuncDeclaration_toObjFile(FuncDeclaration fd, bool multiobj)
     if (fd.semanticRun >= PASS.obj) // if toObjFile() already run
         return;
 
-    if (fd.type && fd.type.ty == Tfunction && (cast(TypeFunction)fd.type).next is null)
+    if (fd.type && fd.type.ty == Type.Kind.function_ && (cast(TypeFunction)fd.type).next is null)
         return;
 
     // If errors occurred compiling it, such as https://issues.dlang.org/show_bug.cgi?id=6118
-    if (fd.type && fd.type.ty == Tfunction && (cast(TypeFunction)fd.type).next.ty == Terror)
+    if (fd.type && fd.type.ty == Type.Kind.function_ && (cast(TypeFunction)fd.type).next.ty == Terror)
         return;
 
     if (fd.semantic3Errors)
@@ -990,7 +990,7 @@ void FuncDeclaration_toObjFile(FuncDeclaration fd, bool multiobj)
     //printf("linkage = %d, tyf = x%x\n", linkage, tyf);
     int reverse = tyrevfunc(s.Stype.Tty);
 
-    assert(fd.type.ty == Tfunction);
+    assert(fd.type.ty == Type.Kind.function_);
     TypeFunction tf = cast(TypeFunction)fd.type;
     RET retmethod = retStyle(tf);
     if (retmethod == RET.stack)
@@ -1377,8 +1377,8 @@ uint totym(Type tx)
     uint t;
     switch (tx.ty)
     {
-        case Tvoid:     t = TYvoid;     break;
-        case Tint8:     t = TYschar;    break;
+        case Type.Kind.void_:     t = TYvoid;     break;
+        case Type.Kind.int8:     t = TYschar;    break;
         case Tuns8:     t = TYuchar;    break;
         case Tint16:    t = TYshort;    break;
         case Tuns16:    t = TYushort;   break;
@@ -1402,25 +1402,25 @@ uint totym(Type tx)
             t = (global.params.symdebug == 1 || !global.params.isWindows) ? TYdchar : TYulong;
             break;
 
-        case Taarray:   t = TYaarray;   break;
-        case Tclass:
-        case Treference:
-        case Tpointer:  t = TYnptr;     break;
-        case Tdelegate: t = TYdelegate; break;
-        case Tarray:    t = TYdarray;   break;
-        case Tsarray:   t = TYstruct;   break;
+        case Type.Kind.associativeArray:   t = TYaarray;   break;
+        case Type.Kind.class_:
+        case Type.Kind.reference:
+        case Type.Kind.pointer:  t = TYnptr;     break;
+        case Type.Kind.delegate_: t = TYdelegate; break;
+        case Type.Kind.array:    t = TYdarray;   break;
+        case Type.Kind.staticArray:   t = TYstruct;   break;
 
-        case Tstruct:
+        case Type.Kind.struct_:
             t = TYstruct;
             if (tx.toDsymbol(null).ident == Id.__c_long_double)
                 t = TYdouble;
             break;
 
-        case Tenum:
+        case Type.Kind.enum_:
             t = totym(tx.toBasetype());
             break;
 
-        case Tident:
+        case Type.Kind.identifier:
         case Ttypeof:
             //printf("ty = %d, '%s'\n", tx.ty, tx.toChars());
             error(Loc(), "forward reference of `%s`", tx.toChars());
@@ -1438,8 +1438,8 @@ uint totym(Type tx)
             const s32 = tv.alignsize() == 32;   // if 32 byte, 256 bit vector
             switch (tb.ty)
             {
-                case Tvoid:
-                case Tint8:     t = s32 ? TYschar32  : TYschar16;  break;
+                case Type.Kind.void_:
+                case Type.Kind.int8:     t = s32 ? TYschar32  : TYschar16;  break;
                 case Tuns8:     t = s32 ? TYuchar32  : TYuchar16;  break;
                 case Tint16:    t = s32 ? TYshort16  : TYshort8;   break;
                 case Tuns16:    t = s32 ? TYushort16 : TYushort8;  break;
@@ -1456,7 +1456,7 @@ uint totym(Type tx)
             break;
         }
 
-        case Tfunction:
+        case Type.Kind.function_:
         {
             TypeFunction tf = cast(TypeFunction)tx;
             final switch (tf.linkage)
@@ -1534,7 +1534,7 @@ uint totym(Type tx)
 
 Symbol *toSymbol(Type t)
 {
-    if (t.ty == Tclass)
+    if (t.ty == Type.Kind.class_)
     {
         return toSymbol((cast(TypeClass)t).sym);
     }

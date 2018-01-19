@@ -85,27 +85,27 @@ extern (C++) TypeInfoDeclaration getTypeInfoDeclaration(Type t)
     //printf("Type::getTypeInfoDeclaration() %s\n", t.toChars());
     switch (t.ty)
     {
-    case Tpointer:
+    case Type.Kind.pointer:
         return TypeInfoPointerDeclaration.create(t);
-    case Tarray:
+    case Type.Kind.array:
         return TypeInfoArrayDeclaration.create(t);
-    case Tsarray:
+    case Type.Kind.staticArray:
         return TypeInfoStaticArrayDeclaration.create(t);
-    case Taarray:
+    case Type.Kind.associativeArray:
         return TypeInfoAssociativeArrayDeclaration.create(t);
-    case Tstruct:
+    case Type.Kind.struct_:
         return TypeInfoStructDeclaration.create(t);
     case Tvector:
         return TypeInfoVectorDeclaration.create(t);
-    case Tenum:
+    case Type.Kind.enum_:
         return TypeInfoEnumDeclaration.create(t);
-    case Tfunction:
+    case Type.Kind.function_:
         return TypeInfoFunctionDeclaration.create(t);
-    case Tdelegate:
+    case Type.Kind.delegate_:
         return TypeInfoDelegateDeclaration.create(t);
     case Ttuple:
         return TypeInfoTupleDeclaration.create(t);
-    case Tclass:
+    case Type.Kind.class_:
         if ((cast(TypeClass)t).sym.isInterfaceDeclaration())
             return TypeInfoInterfaceDeclaration.create(t);
         else
@@ -235,9 +235,9 @@ extern (C++) bool isSpeculativeType(Type t)
  */
 private bool builtinTypeInfo(Type t)
 {
-    if (t.isTypeBasic() || t.ty == Tclass || t.ty == Tnull)
+    if (t.isTypeBasic() || t.ty == Type.Kind.class_ || t.ty == Tnull)
         return !t.mod;
-    if (t.ty == Tarray)
+    if (t.ty == Type.Kind.array)
     {
         Type next = t.nextOf();
         // strings are so common, make them builtin

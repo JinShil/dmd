@@ -399,7 +399,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
 
         Type tb = dsym.type.toBasetype();
         Type tbn = tb.baseElemOf();
-        if (tb.ty == Tvoid && !(dsym.storage_class & STC.lazy_))
+        if (tb.ty == Type.Kind.void_ && !(dsym.storage_class & STC.lazy_))
         {
             if (inferred)
             {
@@ -410,13 +410,13 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             dsym.type = Type.terror;
             tb = dsym.type;
         }
-        if (tb.ty == Tfunction)
+        if (tb.ty == Type.Kind.function_)
         {
             dsym.error("cannot be declared to be a function");
             dsym.type = Type.terror;
             tb = dsym.type;
         }
-        if (tb.ty == Tstruct)
+        if (tb.ty == Type.Kind.struct_)
         {
             TypeStruct ts = cast(TypeStruct)tb;
             if (!ts.sym.members)
@@ -651,7 +651,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                     fprintf(global.stdmsg, "%s: %s.%s is %s field\n", p ? p : "", ad.toPrettyChars(), dsym.toChars(), s);
                 }
                 dsym.storage_class |= STC.field;
-                if (tbn.ty == Tstruct && (cast(TypeStruct)tbn).sym.noDefaultCtor)
+                if (tbn.ty == Type.Kind.struct_ && (cast(TypeStruct)tbn).sym.noDefaultCtor)
                 {
                     if (!dsym.isThisDeclaration() && !dsym._init)
                         aad.noDefaultCtor = true;
@@ -722,7 +722,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             }
         }
 
-        if (!(dsym.storage_class & (STC.ctfe | STC.ref_ | STC.result)) && tbn.ty == Tstruct && (cast(TypeStruct)tbn).sym.noDefaultCtor)
+        if (!(dsym.storage_class & (STC.ctfe | STC.ref_ | STC.result)) && tbn.ty == Type.Kind.struct_ && (cast(TypeStruct)tbn).sym.noDefaultCtor)
         {
             if (!dsym._init)
             {
@@ -798,14 +798,14 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                 dsym.error("size of type `%s` is invalid", dsym.type.toChars());
 
             Type tv = dsym.type;
-            while (tv.ty == Tsarray)    // Don't skip Tenum
+            while (tv.ty == Type.Kind.staticArray)    // Don't skip Type.Kind.enum_
                 tv = tv.nextOf();
             if (tv.needsNested())
             {
                 /* Nested struct requires valid enclosing frame pointer.
                  * In StructLiteralExp::toElem(), it's calculated.
                  */
-                assert(tbn.ty == Tstruct);
+                assert(tbn.ty == Type.Kind.struct_);
                 checkFrameAccess(dsym.loc, sc, (cast(TypeStruct)tbn).sym);
 
                 Expression e = tv.defaultInitLiteral(dsym.loc);
@@ -814,7 +814,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                 dsym._init = new ExpInitializer(dsym.loc, e);
                 goto Ldtor;
             }
-            if (tv.ty == Tstruct && (cast(TypeStruct)tv).sym.zeroInit == 1)
+            if (tv.ty == Type.Kind.struct_ && (cast(TypeStruct)tv).sym.zeroInit == 1)
             {
                 /* If a struct is all zeros, as a special case
                  * set it's initializer to the integer 0.
@@ -828,7 +828,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                 dsym._init = new ExpInitializer(dsym.loc, e);
                 goto Ldtor;
             }
-            if (dsym.type.baseElemOf().ty == Tvoid)
+            if (dsym.type.baseElemOf().ty == Type.Kind.void_)
             {
                 dsym.error("`%s` does not have a default initializer", dsym.type.toChars());
             }
@@ -862,7 +862,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                     {
                         ArrayInitializer ai = dsym._init.isArrayInitializer();
                         Expression e;
-                        if (ai && tb.ty == Taarray)
+                        if (ai && tb.ty == Type.Kind.associativeArray)
                             e = ai.toAssocArrayLiteral();
                         else
                             e = dsym._init.initializerToExpression();
@@ -910,7 +910,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                         {
                             // See if initializer is a NewExp that can be allocated on the stack
                             NewExp ne = cast(NewExp)ex;
-                            if (dsym.type.toBasetype().ty == Tclass)
+                            if (dsym.type.toBasetype().ty == Type.Kind.class_)
                             {
                                 if (ne.newargs && ne.newargs.dim > 1)
                                 {
@@ -980,7 +980,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                          *  static assert(w.x == 55.0);
                          * because the postblit doesn't get run on the initialization of w.
                          */
-                        if (ti.ty == Tstruct)
+                        if (ti.ty == Type.Kind.struct_)
                         {
                             StructDeclaration sd = (cast(TypeStruct)ti).sym;
                             /* Look to see if initializer involves a copy constructor
@@ -1030,7 +1030,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                 dsym.type.hasPointers())
             {
                 auto tv = dsym.type.baseElemOf();
-                if (tv.ty == Tstruct &&
+                if (tv.ty == Type.Kind.struct_ &&
                     (cast(TypeStruct)tv).sym.dtor.storage_class & STC.scope_)
                 {
                     dsym.storage_class |= STC.scope_;
@@ -1319,7 +1319,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                     e = resolveProperties(sc, e);
                     sc = sc.endCTFE();
                     // pragma(msg) is allowed to contain types as well as expressions
-                    if (e.type && e.type.ty == Tvoid)
+                    if (e.type && e.type.ty == Type.Kind.void_)
                     {
                         error(pd.loc, "Cannot pass argument `%s` to `pragma msg` because it is `void`", e.toChars());
                         return;
@@ -1723,7 +1723,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
 
             /* Check to see if memtype is forward referenced
              */
-            if (ed.memtype.ty == Tenum)
+            if (ed.memtype.ty == Type.Kind.enum_)
             {
                 EnumDeclaration sym = cast(EnumDeclaration)ed.memtype.toDsymbol(sc);
                 if (!sym.memtype || !sym.members || !sym.symtab || sym._scope)
@@ -1738,7 +1738,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                     return;
                 }
             }
-            if (ed.memtype.ty == Tvoid)
+            if (ed.memtype.ty == Type.Kind.void_)
             {
                 ed.error("base type must not be void");
                 ed.memtype = Type.terror;
@@ -2560,10 +2560,10 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         if (fld && fld.treq)
         {
             Type treq = fld.treq;
-            assert(treq.nextOf().ty == Tfunction);
-            if (treq.ty == Tdelegate)
+            assert(treq.nextOf().ty == Type.Kind.function_);
+            if (treq.ty == Type.Kind.delegate_)
                 fld.tok = TOK.delegate_;
-            else if (treq.ty == Tpointer && treq.nextOf().ty == Tfunction)
+            else if (treq.ty == Type.Kind.pointer && treq.nextOf().ty == Type.Kind.function_)
                 fld.tok = TOK.function_;
             else
                 assert(0);
@@ -2577,7 +2577,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
 
         if (!funcdecl.originalType)
             funcdecl.originalType = funcdecl.type.syntaxCopy();
-        if (funcdecl.type.ty != Tfunction)
+        if (funcdecl.type.ty != Type.Kind.function_)
         {
             if (funcdecl.type.ty != Terror)
             {
@@ -2705,7 +2705,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             funcdecl.type = funcdecl.type.typeSemantic(funcdecl.loc, sc);
             sc = sc.pop();
         }
-        if (funcdecl.type.ty != Tfunction)
+        if (funcdecl.type.ty != Type.Kind.function_)
         {
             if (funcdecl.type.ty != Terror)
             {
@@ -2787,7 +2787,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         {
             if (funcdecl.isStaticConstructor() || funcdecl.isStaticDestructor())
             {
-                if (!funcdecl.isStatic() || funcdecl.type.nextOf().ty != Tvoid)
+                if (!funcdecl.isStatic() || funcdecl.type.nextOf().ty != Type.Kind.void_)
                     funcdecl.error("static constructors / destructors must be static void");
                 if (f.arguments && f.arguments.dim)
                     funcdecl.error("static constructors / destructors must have empty parameter list");
@@ -3755,7 +3755,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         if (sd.semanticRun == PASS.init)
             sd.type = sd.type.addSTC(sc.stc | sd.storage_class);
         sd.type = sd.type.typeSemantic(sd.loc, sc);
-        if (sd.type.ty == Tstruct && (cast(TypeStruct)sd.type).sym != sd)
+        if (sd.type.ty == Type.Kind.struct_ && (cast(TypeStruct)sd.type).sym != sd)
         {
             auto ti = (cast(TypeStruct)sd.type).sym.isInstantiated();
             if (ti && isError(ti))
@@ -3849,7 +3849,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         foreach (v; sd.fields)
         {
             Type tb = v.type.baseElemOf();
-            if (tb.ty != Tstruct)
+            if (tb.ty != Type.Kind.struct_)
                 continue;
             auto sdec = (cast(TypeStruct)tb).sym;
             if (sdec.semanticRun >= PASS.semanticdone)
@@ -3931,13 +3931,13 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
 
         version (none)
         {
-            if (sd.type.ty == Tstruct && (cast(TypeStruct)sd.type).sym != sd)
+            if (sd.type.ty == Type.Kind.struct_ && (cast(TypeStruct)sd.type).sym != sd)
             {
                 printf("this = %p %s\n", sd, sd.toChars());
                 printf("type = %d sym = %p\n", sd.type.ty, (cast(TypeStruct)sd.type).sym);
             }
         }
-        assert(sd.type.ty != Tstruct || (cast(TypeStruct)sd.type).sym == sd);
+        assert(sd.type.ty != Type.Kind.struct_ || (cast(TypeStruct)sd.type).sym == sd);
     }
 
     final void interfaceSemantic(ClassDeclaration cd)
@@ -3982,7 +3982,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         if (cldec.errors)
             cldec.type = Type.terror;
         cldec.type = cldec.type.typeSemantic(cldec.loc, sc);
-        if (cldec.type.ty == Tclass && (cast(TypeClass)cldec.type).sym != cldec)
+        if (cldec.type.ty == Type.Kind.class_ && (cast(TypeClass)cldec.type).sym != cldec)
         {
             auto ti = (cast(TypeClass)cldec.type).sym.isInstantiated();
             if (ti && isError(ti))
@@ -4091,7 +4091,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             {
                 BaseClass* b = (*cldec.baseclasses)[0];
                 Type tb = b.type.toBasetype();
-                TypeClass tc = (tb.ty == Tclass) ? cast(TypeClass)tb : null;
+                TypeClass tc = (tb.ty == Type.Kind.class_) ? cast(TypeClass)tb : null;
                 if (!tc)
                 {
                     if (b.type != Type.terror)
@@ -4148,7 +4148,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             {
                 BaseClass* b = (*cldec.baseclasses)[i];
                 Type tb = b.type.toBasetype();
-                TypeClass tc = (tb.ty == Tclass) ? cast(TypeClass)tb : null;
+                TypeClass tc = (tb.ty == Type.Kind.class_) ? cast(TypeClass)tb : null;
                 if (!tc || !tc.sym.isInterfaceDeclaration())
                 {
                     if (b.type != Type.terror)
@@ -4218,7 +4218,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
                 t = t.typeSemantic(cldec.loc, sc).toBasetype();
                 if (t.ty == Terror)
                     badObjectDotD();
-                assert(t.ty == Tclass);
+                assert(t.ty == Type.Kind.class_);
                 TypeClass tc = cast(TypeClass)t;
 
                 auto b = new BaseClass(tc);
@@ -4303,7 +4303,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         {
             BaseClass* b = (*cldec.baseclasses)[i];
             Type tb = b.type.toBasetype();
-            assert(tb.ty == Tclass);
+            assert(tb.ty == Type.Kind.class_);
             TypeClass tc = cast(TypeClass)tb;
             if (tc.sym.semanticRun < PASS.semanticdone)
             {
@@ -4404,7 +4404,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         foreach (v; cldec.fields)
         {
             Type tb = v.type.baseElemOf();
-            if (tb.ty != Tstruct)
+            if (tb.ty != Type.Kind.struct_)
                 continue;
             auto sd = (cast(TypeStruct)tb).sym;
             if (sd.semanticRun >= PASS.semanticdone)
@@ -4506,7 +4506,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             }
         }
 
-        if (cldec.type.ty == Tclass && (cast(TypeClass)cldec.type).sym != cldec)
+        if (cldec.type.ty == Type.Kind.class_ && (cast(TypeClass)cldec.type).sym != cldec)
         {
             // https://issues.dlang.org/show_bug.cgi?id=17492
             ClassDeclaration cd = (cast(TypeClass)cldec.type).sym;
@@ -4576,7 +4576,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         if (idec.errors)
             idec.type = Type.terror;
         idec.type = idec.type.typeSemantic(idec.loc, sc);
-        if (idec.type.ty == Tclass && (cast(TypeClass)idec.type).sym != idec)
+        if (idec.type.ty == Type.Kind.class_ && (cast(TypeClass)idec.type).sym != idec)
         {
             auto ti = (cast(TypeClass)idec.type).sym.isInstantiated();
             if (ti && isError(ti))
@@ -4674,7 +4674,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
             {
                 BaseClass* b = (*idec.baseclasses)[i];
                 Type tb = b.type.toBasetype();
-                TypeClass tc = (tb.ty == Tclass) ? cast(TypeClass)tb : null;
+                TypeClass tc = (tb.ty == Type.Kind.class_) ? cast(TypeClass)tb : null;
                 if (!tc || !tc.sym.isInterfaceDeclaration())
                 {
                     if (b.type != Type.terror)
@@ -4760,7 +4760,7 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
         {
             BaseClass* b = (*idec.baseclasses)[i];
             Type tb = b.type.toBasetype();
-            assert(tb.ty == Tclass);
+            assert(tb.ty == Type.Kind.class_);
             TypeClass tc = cast(TypeClass)tb;
             if (tc.sym.semanticRun < PASS.semanticdone)
             {
@@ -4857,13 +4857,13 @@ private extern(C++) final class DsymbolSemanticVisitor : Visitor
 
         version (none)
         {
-            if (type.ty == Tclass && (cast(TypeClass)idec.type).sym != idec)
+            if (type.ty == Type.Kind.class_ && (cast(TypeClass)idec.type).sym != idec)
             {
                 printf("this = %p %s\n", idec, idec.toChars());
                 printf("type = %d sym = %p\n", idec.type.ty, (cast(TypeClass)idec.type).sym);
             }
         }
-        assert(idec.type.ty != Tclass || (cast(TypeClass)idec.type).sym == idec);
+        assert(idec.type.ty != Type.Kind.class_ || (cast(TypeClass)idec.type).sym == idec);
     }
 }
 
@@ -5162,7 +5162,7 @@ void templateInstanceSemantic(TemplateInstance tempinst, Scope* sc, Expressions*
              * resolve any "auto ref" storage classes.
              */
             TypeFunction tf = cast(TypeFunction)fd.type;
-            if (tf && tf.ty == Tfunction)
+            if (tf && tf.ty == Type.Kind.function_)
                 tf.fargs = fargs;
         }
     }

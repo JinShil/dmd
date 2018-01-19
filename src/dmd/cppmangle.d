@@ -346,7 +346,7 @@ private final class CppMangleVisitor : Visitor
     static bool isIdent_char(Identifier ident, RootObject o)
     {
         Type t = isType(o);
-        if (!t || t.ty != Tstruct)
+        if (!t || t.ty != Type.Kind.struct_)
             return false;
         Dsymbol s = (cast(TypeStruct)t).toDsymbol(null);
         if (s.ident != ident)
@@ -627,7 +627,7 @@ private final class CppMangleVisitor : Visitor
 
         if (tf.linkage == LINK.cpp) //Template args accept extern "C" symbols with special mangling
         {
-            assert(tf.ty == Tfunction);
+            assert(tf.ty == Type.Kind.function_);
             mangleFunctionParameters(tf.parameters, tf.varargs);
         }
     }
@@ -651,7 +651,7 @@ private final class CppMangleVisitor : Visitor
             static if (IN_GCC)
             {
                 // Could be a va_list, which we mangle as a pointer.
-                if (t.ty == Tsarray && Type.tvalist.ty == Tsarray)
+                if (t.ty == Type.Kind.staticArray && Type.tvalist.ty == Type.Kind.staticArray)
                 {
                     Type tb = t.toBasetype().mutableOf();
                     if (tb == Type.tvalist)
@@ -661,7 +661,7 @@ private final class CppMangleVisitor : Visitor
                     }
                 }
             }
-            if (t.ty == Tsarray)
+            if (t.ty == Type.Kind.staticArray)
             {
                 // Static arrays in D are passed by value; no counterpart in C++
                 t.error(loc, "Internal Compiler Error: unable to pass static array `%s` to extern(C++) function, use pointer instead",
@@ -732,7 +732,7 @@ public:
      */
     void headOfType(Type t)
     {
-        if (t.ty == Tclass)
+        if (t.ty == Type.Kind.class_)
         {
             mangleTypeClass(cast(TypeClass)t, true);
         }
@@ -810,9 +810,9 @@ public:
         char p = 0;
         switch (t.ty)
         {
-            case Tvoid:                 c = 'v';        break;
-            case Tint8:                 c = 'a';        break;
-            case Tuns8:                 c = 'h';        break;
+            case Type.Kind.void_:                 c = 'v';        break;
+            case Type.Kind.int8:                 c = 'a';        break;
+            case Type.Kind.uint8:                 c = 'h';        break;
             case Tint16:                c = 's';        break;
             case Tuns16:                c = 't';        break;
             case Tint32:                c = 'i';        break;
@@ -873,7 +873,7 @@ public:
         }
         else
         {
-            assert(t.basetype && t.basetype.ty == Tsarray);
+            assert(t.basetype && t.basetype.ty == Type.Kind.staticArray);
             assert((cast(TypeSArray)t.basetype).dim);
             version (none)
             {

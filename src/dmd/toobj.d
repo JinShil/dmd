@@ -236,7 +236,7 @@ void genModuleInfo(Module m)
 void write_pointers(Type type, Symbol *s, uint offset)
 {
     uint ty = type.toBasetype().ty;
-    if (ty == Tclass)
+    if (ty == Type.Kind.class_)
         return objmod.write_pointerRef(s, offset);
 
     write_instance_pointers(type, s, offset);
@@ -939,7 +939,7 @@ void toObjFile(Dsymbol ds, bool multiobj)
             } while (parent);
             s.Sfl = FLdata;
 
-            if (!sz && vd.type.toBasetype().ty != Tsarray)
+            if (!sz && vd.type.toBasetype().ty != Type.Kind.staticArray)
                 assert(0); // this shouldn't be possible
 
             scope dtb = new DtBuilder();
@@ -1228,7 +1228,7 @@ void toObjFile(Dsymbol ds, bool multiobj)
             ExpInitializer ie = vd._init.isExpInitializer();
 
             Type tb = vd.type.toBasetype();
-            if (tb.ty == Tsarray && ie &&
+            if (tb.ty == Type.Kind.staticArray && ie &&
                 !tb.nextOf().equals(ie.exp.type.toBasetype().nextOf()) &&
                 ie.exp.implicitConvTo(tb.nextOf())
                 )
@@ -1415,7 +1415,7 @@ private void finishVtbl(ClassDeclaration cd)
                 continue;
             // Hiding detected: same name, overlapping specializations
             TypeFunction tf = cast(TypeFunction)fd.type;
-            if (tf.ty == Tfunction)
+            if (tf.ty == Type.Kind.function_)
             {
                 cd.error("use of `%s%s` is hidden by `%s`; use `alias %s = %s.%s;` to introduce base class overload set",
                     fd.toPrettyChars(),

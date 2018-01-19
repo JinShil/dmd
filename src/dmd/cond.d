@@ -399,7 +399,7 @@ extern (C++) final class StaticForeach : RootObject
 
         if (!ready())
         {
-            if (aggrfe && aggrfe.aggr.type.toBasetype().ty == Tarray)
+            if (aggrfe && aggrfe.aggr.type.toBasetype().ty == Type.Kind.array)
             {
                 lowerArrayAggregate(sc);
             }

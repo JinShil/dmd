@@ -54,7 +54,7 @@ ImpCnvTab generateImpCnvTab()
     /* ======================= */
 
     X(Tbool,Tbool,   Tbool,Tbool,    Tbool);
-    X(Tbool,Tint8,   Tint32,Tint32,  Tint32);
+    X(Tbool,Type.Kind.int8,   Tint32,Tint32,  Tint32);
     X(Tbool,Tuns8,   Tint32,Tint32,  Tint32);
     X(Tbool,Tint16,  Tint32,Tint32,  Tint32);
     X(Tbool,Tuns16,  Tint32,Tint32,  Tint32);
@@ -77,26 +77,26 @@ ImpCnvTab generateImpCnvTab()
 
     /* ======================= */
 
-    X(Tint8,Tint8,   Tint32,Tint32,  Tint32);
-    X(Tint8,Tuns8,   Tint32,Tint32,  Tint32);
-    X(Tint8,Tint16,  Tint32,Tint32,  Tint32);
-    X(Tint8,Tuns16,  Tint32,Tint32,  Tint32);
-    X(Tint8,Tint32,  Tint32,Tint32,  Tint32);
-    X(Tint8,Tuns32,  Tuns32,Tuns32,  Tuns32);
-    X(Tint8,Tint64,  Tint64,Tint64,  Tint64);
-    X(Tint8,Tuns64,  Tuns64,Tuns64,  Tuns64);
-    X(Tint8,Tint128, Tint128,Tint128, Tint128);
-    X(Tint8,Tuns128, Tuns128,Tuns128, Tuns128);
+    X(Type.Kind.int8,Type.Kind.int8,   Tint32,Tint32,  Tint32);
+    X(Type.Kind.int8,Tuns8,   Tint32,Tint32,  Tint32);
+    X(Type.Kind.int8,Tint16,  Tint32,Tint32,  Tint32);
+    X(Type.Kind.int8,Tuns16,  Tint32,Tint32,  Tint32);
+    X(Type.Kind.int8,Tint32,  Tint32,Tint32,  Tint32);
+    X(Type.Kind.int8,Tuns32,  Tuns32,Tuns32,  Tuns32);
+    X(Type.Kind.int8,Tint64,  Tint64,Tint64,  Tint64);
+    X(Type.Kind.int8,Tuns64,  Tuns64,Tuns64,  Tuns64);
+    X(Type.Kind.int8,Tint128, Tint128,Tint128, Tint128);
+    X(Type.Kind.int8,Tuns128, Tuns128,Tuns128, Tuns128);
 
-    X(Tint8,Tfloat32,     Tfloat32,Tfloat32,     Tfloat32);
-    X(Tint8,Tfloat64,     Tfloat64,Tfloat64,     Tfloat64);
-    X(Tint8,Tfloat80,     Tfloat80,Tfloat80,     Tfloat80);
-    X(Tint8,Timaginary32, Tfloat32,Timaginary32, Tfloat32);
-    X(Tint8,Timaginary64, Tfloat64,Timaginary64, Tfloat64);
-    X(Tint8,Timaginary80, Tfloat80,Timaginary80, Tfloat80);
-    X(Tint8,Tcomplex32,   Tfloat32,Tcomplex32,   Tcomplex32);
-    X(Tint8,Tcomplex64,   Tfloat64,Tcomplex64,   Tcomplex64);
-    X(Tint8,Tcomplex80,   Tfloat80,Tcomplex80,   Tcomplex80);
+    X(Type.Kind.int8,Tfloat32,     Tfloat32,Tfloat32,     Tfloat32);
+    X(Type.Kind.int8,Tfloat64,     Tfloat64,Tfloat64,     Tfloat64);
+    X(Type.Kind.int8,Tfloat80,     Tfloat80,Tfloat80,     Tfloat80);
+    X(Type.Kind.int8,Timaginary32, Tfloat32,Timaginary32, Tfloat32);
+    X(Type.Kind.int8,Timaginary64, Tfloat64,Timaginary64, Tfloat64);
+    X(Type.Kind.int8,Timaginary80, Tfloat80,Timaginary80, Tfloat80);
+    X(Type.Kind.int8,Tcomplex32,   Tfloat32,Tcomplex32,   Tcomplex32);
+    X(Type.Kind.int8,Tcomplex64,   Tfloat64,Tcomplex64,   Tcomplex64);
+    X(Type.Kind.int8,Tcomplex80,   Tfloat80,Tcomplex80,   Tcomplex80);
 
     /* ======================= */
 

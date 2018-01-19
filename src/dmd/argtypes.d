@@ -52,11 +52,11 @@ TypeTuple toArgTypes(Type t)
             Type t2 = null;
             switch (t.ty)
             {
-            case Tvoid:
+            case Type.Kind.void_:
                 return;
             case Tbool:
-            case Tint8:
-            case Tuns8:
+            case Type.Kind.int8:
+            case Type.Kind.uint8:
             case Tint16:
             case Tuns16:
             case Tint32:

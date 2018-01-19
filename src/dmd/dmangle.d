@@ -45,14 +45,14 @@ private immutable char[TMAX] mangleChar =
     Tfloat64     : 'd',
     Tfloat80     : 'e',
     Tfloat32     : 'f',
-    Tint8        : 'g',
-    Tuns8        : 'h',
+    Type.Kind.int8        : 'g',
+    Type.Kind.uint8        : 'h',
     Tint32       : 'i',
     Timaginary80 : 'j',
     Tuns32       : 'k',
     Tint64       : 'l',
     Tuns64       : 'm',
-    Tnone        : 'n',
+    Type.Kind.none        : 'n',
     Tnull        : 'n', // yes, same as TypeNone
     Timaginary32 : 'o',
     Timaginary64 : 'p',
@@ -61,32 +61,32 @@ private immutable char[TMAX] mangleChar =
     Tint16       : 's',
     Tuns16       : 't',
     Twchar       : 'u',
-    Tvoid        : 'v',
+    Type.Kind.void_        : 'v',
     Tdchar       : 'w',
     //              x   // const
     //              y   // immutable
     Tint128      : 'z', // zi
     Tuns128      : 'z', // zk
 
-    Tarray       : 'A',
+    Type.Kind.array       : 'A',
     Ttuple       : 'B',
-    Tclass       : 'C',
-    Tdelegate    : 'D',
-    Tenum        : 'E',
-    Tfunction    : 'F', // D function
-    Tsarray      : 'G',
-    Taarray      : 'H',
-    Tident       : 'I',
+    Type.Kind.class_       : 'C',
+    Type.Kind.delegate_    : 'D',
+    Type.Kind.enum_        : 'E',
+    Type.Kind.function_    : 'F', // D function
+    Type.Kind.staticArray      : 'G',
+    Type.Kind.associativeArray      : 'H',
+    Type.Kind.identifier       : 'I',
     //              J   // out
     //              K   // ref
     //              L   // lazy
     //              M   // has this, or scope
     //              N   // Nh:vector Ng:wild
     //              O   // shared
-    Tpointer     : 'P',
+    Type.Kind.pointer     : 'P',
     //              Q   // Type/symbol/identifier backward reference
-    Treference   : 'R',
-    Tstruct      : 'S',
+    Type.Kind.reference   : 'R',
+    Type.Kind.struct_      : 'S',
     //              T   // Ttypedef
     //              U   // C function
     //              V   // Pascal function

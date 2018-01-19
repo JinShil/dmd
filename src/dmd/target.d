@@ -275,8 +275,8 @@ struct Target
             return 1; // not supported
         switch (type.ty)
         {
-        case Tvoid:
-        case Tint8:
+        case Type.Kind.void_:
+        case Type.Kind.int8:
         case Tuns8:
         case Tint16:
         case Tuns16:

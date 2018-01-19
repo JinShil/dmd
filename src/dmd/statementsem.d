@@ -785,7 +785,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     Dsymbol ds = null;
                     if (!(storageClass & STC.manifest))
                     {
-                        if ((isStatic || tb.ty == Tfunction || tb.ty == Tsarray || storageClass&STC.alias_) && e.op == TOK.variable)
+                        if ((isStatic || tb.ty == Type.Kind.function_ || tb.ty == Type.Kind.staticArray || storageClass&STC.alias_) && e.op == TOK.variable)
                             ds = (cast(VarExp)e).var;
                         else if (e.op == TOK.template_)
                             ds = (cast(TemplateExp)e).td;
@@ -1018,7 +1018,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
         if (fs.aggr.op == TOK.error)
             return setError();
         Expression oaggr = fs.aggr;
-        if (fs.aggr.type && fs.aggr.type.toBasetype().ty == Tstruct &&
+        if (fs.aggr.type && fs.aggr.type.toBasetype().ty == Type.Kind.struct_ &&
             (cast(TypeStruct)(fs.aggr.type.toBasetype())).sym.dtor &&
             fs.aggr.op != TOK.type && !fs.aggr.isLvalue())
         {
@@ -1064,9 +1064,9 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     {
                         // first param should be the callback function
                         Parameter fparam = Parameter.getNth(fparameters, 0);
-                        if ((fparam.type.ty == Tpointer ||
-                             fparam.type.ty == Tdelegate) &&
-                            fparam.type.nextOf().ty == Tfunction)
+                        if ((fparam.type.ty == Type.Kind.pointer ||
+                             fparam.type.ty == Type.Kind.delegate_) &&
+                            fparam.type.nextOf().ty == Type.Kind.function_)
                         {
                             TypeFunction tf = cast(TypeFunction)fparam.type.nextOf();
                             foreachParamCount = Parameter.dim(tf.parameters);
@@ -1122,8 +1122,8 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
 
         switch (tab.ty)
         {
-        case Tarray:
-        case Tsarray:
+        case Type.Kind.array:
+        case Type.Kind.staticArray:
             {
                 if (fs.checkForArgTypes())
                 {
@@ -1194,7 +1194,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                                 goto case Terror;
                             }
                         }
-                        if (tab.ty == Tsarray)
+                        if (tab.ty == Type.Kind.staticArray)
                         {
                             TypeSArray ta = cast(TypeSArray)tab;
                             IntRange dimrange = getIntRange(ta.dim);
@@ -1342,7 +1342,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                 s = s.statementSemantic(sc2);
                 break;
             }
-        case Taarray:
+        case Type.Kind.associativeArray:
             if (fs.op == TOK.foreach_reverse_)
                 fs.warning("cannot use foreach_reverse with an associative array");
             if (fs.checkForArgTypes())
@@ -1359,8 +1359,8 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
             }
             goto Lapply;
 
-        case Tclass:
-        case Tstruct:
+        case Type.Kind.class_:
+        case Type.Kind.struct_:
             /* Prefer using opApply, if it exists
              */
             if (sapply)
@@ -1375,7 +1375,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                  *        ...
                  *    }
                  */
-                auto ad = (tab.ty == Tclass) ?
+                auto ad = (tab.ty == Type.Kind.class_) ?
                     cast(AggregateDeclaration)(cast(TypeClass)tab).sym :
                     cast(AggregateDeclaration)(cast(TypeStruct)tab).sym;
                 Identifier idfront;
@@ -1461,9 +1461,9 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     }
                     if (!tfront || tfront.ty == Terror)
                         goto Lrangeerr;
-                    if (tfront.toBasetype().ty == Tfunction)
+                    if (tfront.toBasetype().ty == Type.Kind.function_)
                         tfront = tfront.toBasetype().nextOf();
-                    if (tfront.ty == Tvoid)
+                    if (tfront.ty == Type.Kind.void_)
                     {
                         fs.error("`%s.front` is void and has no value", oaggr.toChars());
                         goto case Terror;
@@ -1534,7 +1534,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                 fs.error("cannot infer argument types");
                 goto case Terror;
             }
-        case Tdelegate:
+        case Type.Kind.delegate_:
             if (fs.op == TOK.foreach_reverse_)
                 fs.deprecation("cannot use foreach_reverse with a delegate");
         Lapply:
@@ -1552,11 +1552,11 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     FuncDeclaration fdapply = sapply.isFuncDeclaration();
                     if (fdapply)
                     {
-                        assert(fdapply.type && fdapply.type.ty == Tfunction);
+                        assert(fdapply.type && fdapply.type.ty == Type.Kind.function_);
                         tfld = cast(TypeFunction)fdapply.type.typeSemantic(loc, sc2);
                         goto Lget;
                     }
-                    else if (tab.ty == Tdelegate)
+                    else if (tab.ty == Type.Kind.delegate_)
                     {
                         tfld = cast(TypeFunction)tab.nextOf();
                     Lget:
@@ -1564,10 +1564,10 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                         if (tfld.parameters.dim == 1)
                         {
                             Parameter p = Parameter.getNth(tfld.parameters, 0);
-                            if (p.type && p.type.ty == Tdelegate)
+                            if (p.type && p.type.ty == Type.Kind.delegate_)
                             {
                                 auto t = p.type.typeSemantic(loc, sc2);
-                                assert(t.ty == Tdelegate);
+                                assert(t.ty == Type.Kind.delegate_);
                                 tfld = cast(TypeFunction)t.nextOf();
                             }
                             //printf("tfld = %s\n", tfld.toChars());
@@ -1731,7 +1731,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     ec = new CallExp(loc, ec, exps);
                     ec.type = Type.tint32; // don't run semantic() on ec
                 }
-                else if (tab.ty == Tarray || tab.ty == Tsarray)
+                else if (tab.ty == Type.Kind.array || tab.ty == Type.Kind.staticArray)
                 {
                     /* Call:
                      *      _aApply(aggr, flde)
@@ -1779,7 +1779,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     params.push(new Parameter(0, dgty, null, null));
                     fdapply = FuncDeclaration.genCfunc(params, Type.tint32, fdname.ptr);
 
-                    if (tab.ty == Tsarray)
+                    if (tab.ty == Type.Kind.staticArray)
                         fs.aggr = fs.aggr.castTo(sc2, tn.arrayOf());
                     // paint delegate argument to the type runtime expects
                     if (!dgty.equals(flde.type))
@@ -1791,7 +1791,7 @@ private extern (C++) final class StatementSemanticVisitor : Visitor
                     ec = new CallExp(loc, ec, fs.aggr, flde);
                     ec.type = Type.tint32; // don't run semantic() on ec
                 }
-                else if (tab.ty == Tdelegate)
+                else if (tab.ty == Type.Kind.delegate_)
                 {
                     /* Call:
                      *      aggr(flde)
@@ -1831,7 +1831,7 @@ else
                     if (global.params.vsafe)
                         fld.tookAddressOf = 1;  // allocate a closure unless the opApply() uses 'scope'
 }
-                    assert(tab.ty == Tstruct || tab.ty == Tclass);
+                    assert(tab.ty == Type.Kind.struct_ || tab.ty == Type.Kind.class_);
                     assert(sapply);
                     /* Call:
                      *  aggr.apply(flde)
@@ -1941,7 +1941,7 @@ else
             /* Must infer types from lwr and upr
              */
             Type tlwr = fs.lwr.type.toBasetype();
-            if (tlwr.ty == Tstruct || tlwr.ty == Tclass)
+            if (tlwr.ty == Type.Kind.struct_ || tlwr.ty == Type.Kind.class_)
             {
                 /* Just picking the first really isn't good enough.
                  */
@@ -2355,12 +2355,12 @@ else
         while (ss.condition.op != TOK.error)
         {
             // preserve enum type for final switches
-            if (ss.condition.type.ty == Tenum)
+            if (ss.condition.type.ty == Type.Kind.enum_)
                 te = cast(TypeEnum)ss.condition.type;
             if (ss.condition.type.isString())
             {
                 // If it's not an array, cast it to one
-                if (ss.condition.type.ty != Tarray)
+                if (ss.condition.type.ty != Type.Kind.array)
                 {
                     ss.condition = ss.condition.implicitCastTo(sc, ss.condition.type.nextOf().arrayOf());
                 }
@@ -2632,7 +2632,7 @@ else
                 VarExp ve = cast(VarExp)e;
                 VarDeclaration v = ve.var.isVarDeclaration();
                 Type t = cs.exp.type.toBasetype();
-                if (v && (t.isintegral() || t.ty == Tclass))
+                if (v && (t.isintegral() || t.ty == Type.Kind.class_))
                 {
                     /* Flag that we need to do special code generation
                      * for this, i.e. generate a sequence of if-then-else
@@ -2901,7 +2901,7 @@ else
             fd = fd.fes.func; // fd is now function enclosing foreach
 
             TypeFunction tf = cast(TypeFunction)fd.type;
-        assert(tf.ty == Tfunction);
+        assert(tf.ty == Type.Kind.function_);
 
         if (rs.exp && rs.exp.op == TOK.variable && (cast(VarExp)rs.exp).var == fd.vresult)
         {
@@ -3002,9 +3002,9 @@ else
             /* Void-return function can have void typed expression
              * on return statement.
              */
-            if (tbret && tbret.ty == Tvoid || rs.exp.type.ty == Tvoid)
+            if (tbret && tbret.ty == Type.Kind.void_ || rs.exp.type.ty == Type.Kind.void_)
             {
-                if (rs.exp.type.ty != Tvoid)
+                if (rs.exp.type.ty != Type.Kind.void_)
                 {
                     rs.error("cannot return non-void from void function");
                     errors = true;
@@ -3118,7 +3118,7 @@ else
             // infer return type
             if (fd.inferRetType)
             {
-                if (tf.next && tf.next.ty != Tvoid)
+                if (tf.next && tf.next.ty != Type.Kind.void_)
                 {
                     if (tf.next.ty != Terror)
                     {
@@ -3137,7 +3137,7 @@ else
             if (inferRef) // deduce 'auto ref'
                 tf.isref = false;
 
-            if (tbret.ty != Tvoid) // if non-void return
+            if (tbret.ty != Type.Kind.void_) // if non-void return
             {
                 if (tbret.ty != Terror)
                     rs.error("return expression expected");
@@ -3423,7 +3423,7 @@ else
 
                 Type t = ClassDeclaration.object.type;
                 t = t.typeSemantic(Loc(), sc).toBasetype();
-                assert(t.ty == Tclass);
+                assert(t.ty == Type.Kind.class_);
 
                 ss.exp = new CastExp(ss.loc, ss.exp, t);
                 ss.exp = ss.exp.expressionSemantic(sc);
@@ -3544,7 +3544,7 @@ else
             Type t = ws.exp.type.toBasetype();
 
             Expression olde = ws.exp;
-            if (t.ty == Tpointer)
+            if (t.ty == Type.Kind.pointer)
             {
                 ws.exp = new PtrExp(ws.loc, ws.exp);
                 ws.exp = ws.exp.expressionSemantic(sc);
@@ -3563,7 +3563,7 @@ else
                 sym.parent = sc.scopesym;
                 sym.endlinnum = ws.endloc.linnum;
             }
-            else if (t.ty == Tstruct)
+            else if (t.ty == Type.Kind.struct_)
             {
                 if (!ws.exp.isLvalue())
                 {

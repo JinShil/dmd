@@ -98,7 +98,7 @@ struct TYPE
         PARAM* Tparamtypes; // TYfunc, TYtemplate: types of function parameters
         Classsym* Ttag;     // TYstruct,TYmemptr: tag symbol
                             // TYenum,TYvtshape: tag symbol
-        char* Tident;       // TYident: identifier
+        char* Type.Kind.identifier;       // TYident: identifier
         type* Tkey;         // typtr: key type for associative arrays
     }
 

@@ -49,7 +49,7 @@ public:
     override void visit(TypeDArray t)
     {
         t.ctype = type_dyn_array(Type_toCtype(t.next));
-        t.ctype.Tident = t.toPrettyChars(true);
+        t.ctype.Type.Kind.identifier = t.toPrettyChars(true);
     }
 
     override void visit(TypeAArray t)

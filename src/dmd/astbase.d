@@ -137,22 +137,22 @@ struct ASTBase
 
     enum ENUMTY : int
     {
-        Tarray,     // slice array, aka T[]
-        Tsarray,    // static array, aka T[dimension]
-        Taarray,    // associative array, aka T[type]
-        Tpointer,
-        Treference,
-        Tfunction,
-        Tident,
-        Tclass,
-        Tstruct,
-        Tenum,
+        Type.Kind.array,     // slice array, aka T[]
+        Type.Kind.staticArray,    // static array, aka T[dimension]
+        Type.Kind.associativeArray,    // associative array, aka T[type]
+        Type.Kind.pointer,
+        Type.Kind.reference,
+        Type.Kind.function_,
+        Type.Kind.identifier,
+        Type.Kind.class_,
+        Type.Kind.struct_,
+        Type.Kind.enum_,
 
-        Tdelegate,
-        Tnone,
-        Tvoid,
-        Tint8,
-        Tuns8,
+        Type.Kind.delegate_,
+        Type.Kind.none,
+        Type.Kind.void_,
+        Type.Kind.int8,
+        Type.Kind.uint8,
         Tint16,
         Tuns16,
         Tint32,
@@ -188,21 +188,21 @@ struct ASTBase
         TMAX
     }
 
-    alias Tarray = ENUMTY.Tarray;
-    alias Tsarray = ENUMTY.Tsarray;
-    alias Taarray = ENUMTY.Taarray;
-    alias Tpointer = ENUMTY.Tpointer;
-    alias Treference = ENUMTY.Treference;
-    alias Tfunction = ENUMTY.Tfunction;
-    alias Tident = ENUMTY.Tident;
-    alias Tclass = ENUMTY.Tclass;
-    alias Tstruct = ENUMTY.Tstruct;
-    alias Tenum = ENUMTY.Tenum;
-    alias Tdelegate = ENUMTY.Tdelegate;
-    alias Tnone = ENUMTY.Tnone;
-    alias Tvoid = ENUMTY.Tvoid;
-    alias Tint8 = ENUMTY.Tint8;
-    alias Tuns8 = ENUMTY.Tuns8;
+    alias Type.Kind.array = ENUMTY.Type.Kind.array;
+    alias Type.Kind.staticArray = ENUMTY.Type.Kind.staticArray;
+    alias Type.Kind.associativeArray = ENUMTY.Type.Kind.associativeArray;
+    alias Type.Kind.pointer = ENUMTY.Type.Kind.pointer;
+    alias Type.Kind.reference = ENUMTY.Type.Kind.reference;
+    alias Type.Kind.function_ = ENUMTY.Type.Kind.function_;
+    alias Type.Kind.identifier = ENUMTY.Type.Kind.identifier;
+    alias Type.Kind.class_ = ENUMTY.Type.Kind.class_;
+    alias Type.Kind.struct_ = ENUMTY.Type.Kind.struct_;
+    alias Type.Kind.enum_ = ENUMTY.Type.Kind.enum_;
+    alias Type.Kind.delegate_ = ENUMTY.Type.Kind.delegate_;
+    alias Type.Kind.none = ENUMTY.Type.Kind.none;
+    alias Type.Kind.void_ = ENUMTY.Type.Kind.void_;
+    alias Type.Kind.int8 = ENUMTY.Type.Kind.int8;
+    alias Type.Kind.uint8 = ENUMTY.Type.Kind.uint8;
     alias Tint16 = ENUMTY.Tint16;
     alias Tuns16 = ENUMTY.Tuns16;
     alias Tint32 = ENUMTY.Tint32;
@@ -2598,19 +2598,19 @@ struct ASTBase
         extern (C++) static __gshared ubyte[TMAX] sizeTy = ()
             {
                 ubyte[TMAX] sizeTy = __traits(classInstanceSize, TypeBasic);
-                sizeTy[Tsarray] = __traits(classInstanceSize, TypeSArray);
-                sizeTy[Tarray] = __traits(classInstanceSize, TypeDArray);
-                sizeTy[Taarray] = __traits(classInstanceSize, TypeAArray);
-                sizeTy[Tpointer] = __traits(classInstanceSize, TypePointer);
-                sizeTy[Treference] = __traits(classInstanceSize, TypeReference);
-                sizeTy[Tfunction] = __traits(classInstanceSize, TypeFunction);
-                sizeTy[Tdelegate] = __traits(classInstanceSize, TypeDelegate);
-                sizeTy[Tident] = __traits(classInstanceSize, TypeIdentifier);
+                sizeTy[Type.Kind.staticArray] = __traits(classInstanceSize, TypeSArray);
+                sizeTy[Type.Kind.array] = __traits(classInstanceSize, TypeDArray);
+                sizeTy[Type.Kind.associativeArray] = __traits(classInstanceSize, TypeAArray);
+                sizeTy[Type.Kind.pointer] = __traits(classInstanceSize, TypePointer);
+                sizeTy[Type.Kind.reference] = __traits(classInstanceSize, TypeReference);
+                sizeTy[Type.Kind.function_] = __traits(classInstanceSize, TypeFunction);
+                sizeTy[Type.Kind.delegate_] = __traits(classInstanceSize, TypeDelegate);
+                sizeTy[Type.Kind.identifier] = __traits(classInstanceSize, TypeIdentifier);
                 sizeTy[Tinstance] = __traits(classInstanceSize, TypeInstance);
                 sizeTy[Ttypeof] = __traits(classInstanceSize, TypeTypeof);
-                sizeTy[Tenum] = __traits(classInstanceSize, TypeEnum);
-                sizeTy[Tstruct] = __traits(classInstanceSize, TypeStruct);
-                sizeTy[Tclass] = __traits(classInstanceSize, TypeClass);
+                sizeTy[Type.Kind.enum_] = __traits(classInstanceSize, TypeEnum);
+                sizeTy[Type.Kind.struct_] = __traits(classInstanceSize, TypeStruct);
+                sizeTy[Type.Kind.class_] = __traits(classInstanceSize, TypeClass);
                 sizeTy[Ttuple] = __traits(classInstanceSize, TypeTuple);
                 sizeTy[Tslice] = __traits(classInstanceSize, TypeSlice);
                 sizeTy[Treturn] = __traits(classInstanceSize, TypeReturn);
@@ -2654,9 +2654,9 @@ struct ASTBase
             // Set basic types
             static __gshared TY* basetab =
             [
-                Tvoid,
-                Tint8,
-                Tuns8,
+                Type.Kind.void_,
+                Type.Kind.int8,
+                Type.Kind.uint8,
                 Tint16,
                 Tuns16,
                 Tint32,
@@ -2689,9 +2689,9 @@ struct ASTBase
             }
             basic[Terror] = new TypeError();
 
-            tvoid = basic[Tvoid];
-            tint8 = basic[Tint8];
-            tuns8 = basic[Tuns8];
+            tvoid = basic[Type.Kind.void_];
+            tint8 = basic[Type.Kind.int8];
+            tuns8 = basic[Type.Kind.uint8];
             tint16 = basic[Tint16];
             tuns16 = basic[Tuns16];
             tint32 = basic[Tint32];
@@ -2752,7 +2752,7 @@ struct ASTBase
             if (!pto)
             {
                 Type t = new TypePointer(this);
-                if (ty == Tfunction)
+                if (ty == Type.Kind.function_)
                 {
                     t.deco = t.merge().deco;
                     pto = t;
@@ -2800,9 +2800,9 @@ struct ASTBase
             t.swcto = null;
             //t.vtinfo = null; these aren't used in parsing
             //t.ctype = null;
-            if (t.ty == Tstruct)
+            if (t.ty == Type.Kind.struct_)
                 (cast(TypeStruct)t).att = AliasThisRec.fwdref;
-            if (t.ty == Tclass)
+            if (t.ty == Type.Kind.class_)
                 (cast(TypeClass)t).att = AliasThisRec.fwdref;
             return t;
         }
@@ -2886,13 +2886,13 @@ struct ASTBase
                 return this;
             if (ty == Ttypeof)
                 return this;
-            if (ty == Tident)
+            if (ty == Type.Kind.identifier)
                 return this;
             if (ty == Tinstance)
                 return this;
-            if (ty == Taarray && !(cast(TypeAArray)this).index.merge().deco)
+            if (ty == Type.Kind.associativeArray && !(cast(TypeAArray)this).index.merge().deco)
                 return this;
-            if (ty != Tenum && nextOf() && !nextOf().deco)
+            if (ty != Type.Kind.enum_ && nextOf() && !nextOf().deco)
                 return this;
 
             // if (!deco) - code missing
@@ -3103,7 +3103,7 @@ struct ASTBase
         {
             Type mto = null;
             Type tn = nextOf();
-            if (!tn || ty != Tsarray && tn.mod == t.nextOf().mod)
+            if (!tn || ty != Type.Kind.staticArray && tn.mod == t.nextOf().mod)
             {
                 switch (t.mod)
                 {
@@ -3372,16 +3372,16 @@ struct ASTBase
             uint flags = 0;
             switch (ty)
             {
-            case Tvoid:
+            case Type.Kind.void_:
                 d = Token.toChars(TOK.void_);
                 break;
 
-            case Tint8:
+            case Type.Kind.int8:
                 d = Token.toChars(TOK.int8);
                 flags |= TFlags.integral;
                 break;
 
-            case Tuns8:
+            case Type.Kind.uint8:
                 d = Token.toChars(TOK.uns8);
                 flags |= TFlags.integral | TFlags.unsigned;
                 break;
@@ -3574,7 +3574,7 @@ struct ASTBase
 
         extern (D) this(EnumDeclaration sym)
         {
-            super(Tenum);
+            super(Type.Kind.enum_);
             this.sym = sym;
         }
 
@@ -3639,7 +3639,7 @@ struct ASTBase
 
         extern (D) this (ClassDeclaration sym)
         {
-            super(Tclass);
+            super(Type.Kind.class_);
             this.sym = sym;
         }
 
@@ -3661,7 +3661,7 @@ struct ASTBase
 
         extern (D) this(StructDeclaration sym)
         {
-            super(Tstruct);
+            super(Type.Kind.struct_);
             this.sym = sym;
         }
 
@@ -3680,7 +3680,7 @@ struct ASTBase
     {
         extern (D) this(Type t)
         {
-            super(Treference, t);
+            super(Type.Kind.reference, t);
             // BUG: what about references to static arrays?
         }
 
@@ -3753,8 +3753,8 @@ struct ASTBase
     {
         extern (D) this(Type t)
         {
-            super(Tfunction, t);
-            ty = Tdelegate;
+            super(Type.Kind.function_, t);
+            ty = Type.Kind.delegate_;
         }
 
         override Type syntaxCopy()
@@ -3780,7 +3780,7 @@ struct ASTBase
     {
         extern (D) this(Type t)
         {
-            super(Tpointer, t);
+            super(Type.Kind.pointer, t);
         }
 
         override Type syntaxCopy()
@@ -3822,7 +3822,7 @@ struct ASTBase
 
         extern (D) this(Parameters* parameters, Type treturn, int varargs, LINK linkage, StorageClass stc = 0)
         {
-            super(Tfunction, treturn);
+            super(Type.Kind.function_, treturn);
             assert(0 <= varargs && varargs <= 2);
             this.parameters = parameters;
             this.varargs = varargs;
@@ -3895,7 +3895,7 @@ struct ASTBase
     {
         extern (D) this(Type t)
         {
-            super(Tarray, t);
+            super(Type.Kind.array, t);
         }
 
         override Type syntaxCopy()
@@ -3924,7 +3924,7 @@ struct ASTBase
 
         extern (D) this(Type t, Type index)
         {
-            super(Taarray, t);
+            super(Type.Kind.associativeArray, t);
             this.index = index;
         }
 
@@ -3966,7 +3966,7 @@ struct ASTBase
 
         final extern (D) this(Type t, Expression dim)
         {
-            super(Tsarray, t);
+            super(Type.Kind.staticArray, t);
             this.dim = dim;
         }
 
@@ -4092,7 +4092,7 @@ struct ASTBase
 
         extern (D) this(Loc loc, Identifier ident)
         {
-            super(Tident, loc);
+            super(Type.Kind.identifier, loc);
             this.ident = ident;
         }
 
@@ -4292,12 +4292,12 @@ struct ASTBase
                 value = (value != 0);
                 break;
 
-            case Tint8:
+            case Type.Kind.int8:
                 value = cast(d_int8)value;
                 break;
 
             case Tchar:
-            case Tuns8:
+            case Type.Kind.uint8:
                 value = cast(d_uns8)value;
                 break;
 
@@ -4327,7 +4327,7 @@ struct ASTBase
                 value = cast(d_uns64)value;
                 break;
 
-            case Tpointer:
+            case Type.Kind.pointer:
                 if (Target.ptrsize == 4)
                     value = cast(d_uns32)value;
                 else if (Target.ptrsize == 8)

@@ -257,7 +257,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
         funcdecl.semanticRun = PASS.semantic3;
         funcdecl.semantic3Errors = false;
 
-        if (!funcdecl.type || funcdecl.type.ty != Tfunction)
+        if (!funcdecl.type || funcdecl.type.ty != Type.Kind.function_)
             return;
         TypeFunction f = cast(TypeFunction)funcdecl.type;
         if (!funcdecl.inferRetType && f.next.ty == Terror)
@@ -569,7 +569,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
                     fpostinv = null;
                 }
 
-                assert(funcdecl.type == f || (funcdecl.type.ty == Tfunction && f.purity == PURE.impure && (cast(TypeFunction)funcdecl.type).purity >= PURE.fwdref));
+                assert(funcdecl.type == f || (funcdecl.type.ty == Type.Kind.function_ && f.purity == PURE.impure && (cast(TypeFunction)funcdecl.type).purity >= PURE.fwdref));
                 f = cast(TypeFunction)funcdecl.type;
 
                 if (funcdecl.inferRetType)
@@ -590,7 +590,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
                         Expression exp = (*funcdecl.returns)[i].exp;
                         if (exp.op == TOK.variable && (cast(VarExp)exp).var == funcdecl.vresult)
                         {
-                            if (f.next.ty == Tvoid && funcdecl.isMain())
+                            if (f.next.ty == Type.Kind.void_ && funcdecl.isMain())
                                 exp.type = Type.tint32;
                             else
                                 exp.type = f.next;
@@ -759,7 +759,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
                 else
                 {
                     const(bool) inlineAsm = (funcdecl.hasReturnExp & 8) != 0;
-                    if ((blockexit & BE.fallthru) && f.next.ty != Tvoid && !inlineAsm)
+                    if ((blockexit & BE.fallthru) && f.next.ty != Type.Kind.void_ && !inlineAsm)
                     {
                         Expression e;
                         if (!funcdecl.hasReturnExp)
@@ -784,9 +784,9 @@ private extern(C++) final class Semantic3Visitor : Visitor
 
                 if (funcdecl.returns)
                 {
-                    bool implicit0 = (f.next.ty == Tvoid && funcdecl.isMain());
+                    bool implicit0 = (f.next.ty == Type.Kind.void_ && funcdecl.isMain());
                     Type tret = implicit0 ? Type.tint32 : f.next;
-                    assert(tret.ty != Tvoid);
+                    assert(tret.ty != Type.Kind.void_);
                     if (funcdecl.vresult || funcdecl.returnLabel)
                         funcdecl.buildResultVar(scout ? scout : sc2, tret);
 
@@ -901,7 +901,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
             {
                 /* fensure is composed of the [out] contracts
                  */
-                if (f.next.ty == Tvoid && funcdecl.outId)
+                if (f.next.ty == Type.Kind.void_ && funcdecl.outId)
                     funcdecl.error("void functions have no result");
 
                 sc2 = scout; //push
@@ -909,7 +909,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
 
                 // BUG: need to disallow returns and throws
 
-                if (funcdecl.fensure && f.next.ty != Tvoid)
+                if (funcdecl.fensure && f.next.ty != Type.Kind.void_)
                     funcdecl.buildResultVar(scout, f.next);
 
                 fens = fens.statementSemantic(sc2);
@@ -987,7 +987,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
                     funcdecl.returnLabel.statement = ls;
                     a.push(funcdecl.returnLabel.statement);
 
-                    if (f.next.ty != Tvoid && funcdecl.vresult)
+                    if (f.next.ty != Type.Kind.void_ && funcdecl.vresult)
                     {
                         // Create: return vresult;
                         Expression e = new VarExp(Loc(), funcdecl.vresult);
@@ -1000,7 +1000,7 @@ private extern(C++) final class Semantic3Visitor : Visitor
                         a.push(s);
                     }
                 }
-                if (funcdecl.isMain() && f.next.ty == Tvoid)
+                if (funcdecl.isMain() && f.next.ty == Type.Kind.void_)
                 {
                     // Add a return 0; statement
                     Statement s = new ReturnStatement(Loc(), new IntegerExp(0));

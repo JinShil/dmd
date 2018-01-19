@@ -205,7 +205,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
             return;
         }
         mtype.basetype = mtype.basetype.toBasetype().mutableOf();
-        if (mtype.basetype.ty != Tsarray)
+        if (mtype.basetype.ty != Type.Kind.staticArray)
         {
             mtype.error(loc, "T in __vector(T) must be a static array, not `%s`", mtype.basetype.toChars());
             result = Type.terror;
@@ -352,13 +352,13 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
                 return;
             }
             Type tbx = tbn.baseElemOf();
-            if (tbx.ty == Tstruct && !(cast(TypeStruct)tbx).sym.members || tbx.ty == Tenum && !(cast(TypeEnum)tbx).sym.members)
+            if (tbx.ty == Type.Kind.struct_ && !(cast(TypeStruct)tbx).sym.members || tbx.ty == Type.Kind.enum_ && !(cast(TypeEnum)tbx).sym.members)
             {
                 /* To avoid meaningless error message, skip the total size limit check
                  * when the bottom of element type is opaque.
                  */
             }
-            else if (tbn.isintegral() || tbn.isfloating() || tbn.ty == Tpointer || tbn.ty == Tarray || tbn.ty == Tsarray || tbn.ty == Taarray || (tbn.ty == Tstruct && ((cast(TypeStruct)tbn).sym.sizeok == Sizeok.done)) || tbn.ty == Tclass)
+            else if (tbn.isintegral() || tbn.isfloating() || tbn.ty == Type.Kind.pointer || tbn.ty == Type.Kind.array || tbn.ty == Type.Kind.staticArray || tbn.ty == Type.Kind.associativeArray || (tbn.ty == Type.Kind.struct_ && ((cast(TypeStruct)tbn).sym.sizeok == Sizeok.done)) || tbn.ty == Type.Kind.class_)
             {
                 /* Only do this for types that don't need to have semantic()
                  * run on them for the size, since they may be forward referenced.
@@ -386,8 +386,8 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
                 result = telem.addMod(mtype.mod);
                 return;
             }
-        case Tfunction:
-        case Tnone:
+        case Type.Kind.function_:
+        case Type.Kind.none:
             mtype.error(loc, "cannot have array of `%s`", tbn.toChars());
             result = errorReturn();
             return;
@@ -420,8 +420,8 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
         case Ttuple:
             result = tbn;
             return;
-        case Tfunction:
-        case Tnone:
+        case Type.Kind.function_:
+        case Type.Kind.none:
             mtype.error(loc, "cannot have array of `%s`", tbn.toChars());
             result = Type.terror;
             return;
@@ -458,7 +458,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
 
         // Deal with the case where we thought the index was a type, but
         // in reality it was an expression.
-        if (mtype.index.ty == Tident || mtype.index.ty == Tinstance || mtype.index.ty == Tsarray || mtype.index.ty == Ttypeof || mtype.index.ty == Treturn)
+        if (mtype.index.ty == Type.Kind.identifier || mtype.index.ty == Tinstance || mtype.index.ty == Type.Kind.staticArray || mtype.index.ty == Ttypeof || mtype.index.ty == Treturn)
         {
             Expression e;
             Type t;
@@ -504,9 +504,9 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
 
         switch (mtype.index.toBasetype().ty)
         {
-        case Tfunction:
-        case Tvoid:
-        case Tnone:
+        case Type.Kind.function_:
+        case Type.Kind.void_:
+        case Type.Kind.none:
         case Ttuple:
             mtype.error(loc, "cannot have associative array key of `%s`", mtype.index.toBasetype().toChars());
             goto case Terror;
@@ -517,9 +517,9 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
             break;
         }
         Type tbase = mtype.index.baseElemOf();
-        while (tbase.ty == Tarray)
+        while (tbase.ty == Type.Kind.array)
             tbase = tbase.nextOf().baseElemOf();
-        if (tbase.ty == Tstruct)
+        if (tbase.ty == Type.Kind.struct_)
         {
             /* AA's need typeid(index).equals() and getHash(). Issue error if not correctly set up.
              */
@@ -538,7 +538,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
             }
 
             //printf("AA = %s, key: xeq = %p, xhash = %p\n", toChars(), sd.xeq, sd.xhash);
-            const(char)* s = (mtype.index.toBasetype().ty != Tstruct) ? "bottom of " : "";
+            const(char)* s = (mtype.index.toBasetype().ty != Type.Kind.struct_) ? "bottom of " : "";
             if (!sd.xeq)
             {
                 // If sd.xhash != NULL:
@@ -585,7 +585,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
                  */
             }
         }
-        else if (tbase.ty == Tclass && !(cast(TypeClass)tbase).sym.isInterfaceDeclaration())
+        else if (tbase.ty == Type.Kind.class_ && !(cast(TypeClass)tbase).sym.isInterfaceDeclaration())
         {
             ClassDeclaration cd = (cast(TypeClass)tbase).sym;
             if (cd.semanticRun < PASS.semanticdone)
@@ -614,7 +614,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
                 {
                     if (fcmp.vtblIndex < cd.vtbl.dim && cd.vtbl[fcmp.vtblIndex] != fcmp)
                     {
-                        const(char)* s = (mtype.index.toBasetype().ty != Tclass) ? "bottom of " : "";
+                        const(char)* s = (mtype.index.toBasetype().ty != Type.Kind.class_) ? "bottom of " : "";
                         mtype.error(loc, "%sAA key type `%s` now requires equality rather than comparison", s, cd.toChars());
                         errorSupplemental(loc, "Please override `Object.opEquals` and `Object.toHash`.");
                     }
@@ -626,9 +626,9 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
 
         switch (mtype.next.toBasetype().ty)
         {
-        case Tfunction:
-        case Tvoid:
-        case Tnone:
+        case Type.Kind.function_:
+        case Type.Kind.void_:
+        case Type.Kind.none:
         case Ttuple:
             mtype.error(loc, "cannot have associative array of `%s`", mtype.next.toChars());
             goto case Terror;
@@ -672,7 +672,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
             mtype.deco = null;
         }
         mtype.next = n;
-        if (mtype.next.ty != Tfunction)
+        if (mtype.next.ty != Type.Kind.function_)
         {
             mtype.transitive();
             result = merge(mtype);
@@ -843,23 +843,23 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
 
                 Type t = fparam.type.toBasetype();
 
-                if (t.ty == Tfunction)
+                if (t.ty == Type.Kind.function_)
                 {
                     mtype.error(loc, "cannot have parameter of function type `%s`", fparam.type.toChars());
                     errors = true;
                 }
                 else if (!(fparam.storageClass & (STC.ref_ | STC.out_)) &&
-                         (t.ty == Tstruct || t.ty == Tsarray || t.ty == Tenum))
+                         (t.ty == Type.Kind.struct_ || t.ty == Type.Kind.staticArray || t.ty == Type.Kind.enum_))
                 {
                     Type tb2 = t.baseElemOf();
-                    if (tb2.ty == Tstruct && !(cast(TypeStruct)tb2).sym.members ||
-                        tb2.ty == Tenum && !(cast(TypeEnum)tb2).sym.memtype)
+                    if (tb2.ty == Type.Kind.struct_ && !(cast(TypeStruct)tb2).sym.members ||
+                        tb2.ty == Type.Kind.enum_ && !(cast(TypeEnum)tb2).sym.memtype)
                     {
                         mtype.error(loc, "cannot have parameter of opaque type `%s` by value", fparam.type.toChars());
                         errors = true;
                     }
                 }
-                else if (!(fparam.storageClass & STC.lazy_) && t.ty == Tvoid)
+                else if (!(fparam.storageClass & STC.lazy_) && t.ty == Type.Kind.void_)
                 {
                     mtype.error(loc, "cannot have parameter of type `%s`", fparam.type.toChars());
                     errors = true;
@@ -914,9 +914,9 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
                     else
                     {
                         Type tv = t;
-                        while (tv.ty == Tsarray)
+                        while (tv.ty == Type.Kind.staticArray)
                             tv = tv.nextOf().toBasetype();
-                        if (tv.ty == Tstruct && (cast(TypeStruct)tv).sym.noDefaultCtor)
+                        if (tv.ty == Type.Kind.struct_ && (cast(TypeStruct)tv).sym.noDefaultCtor)
                         {
                             mtype.error(loc, "cannot have out parameter of type `%s` because the default construction is disabled", fparam.type.toChars());
                             errors = true;
@@ -1114,7 +1114,7 @@ private extern (C++) final class TypeSemanticVisitor : Visitor
             return;
         }
         mtype.next = mtype.next.typeSemantic(loc, sc);
-        if (mtype.next.ty != Tfunction)
+        if (mtype.next.ty != Type.Kind.function_)
         {
             result = Type.terror;
             return;
@@ -1381,13 +1381,13 @@ static Type merge(Type type)
         return type;
     if (type.ty == Ttypeof)
         return type;
-    if (type.ty == Tident)
+    if (type.ty == Type.Kind.identifier)
         return type;
     if (type.ty == Tinstance)
         return type;
-    if (type.ty == Taarray && !(cast(TypeAArray)type).index.merge().deco)
+    if (type.ty == Type.Kind.associativeArray && !(cast(TypeAArray)type).index.merge().deco)
         return type;
-    if (type.ty != Tenum && type.nextOf() && !type.nextOf().deco)
+    if (type.ty != Type.Kind.enum_ && type.nextOf() && !type.nextOf().deco)
         return type;
 
     //printf("merge(%s)\n", toChars());
