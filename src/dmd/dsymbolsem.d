@@ -239,7 +239,11 @@ private extern (C++) FuncDeclaration buildPostBlit(StructDeclaration sd, Scope* 
 
             ex = new CallExp(loc, new IdentifierExp(loc, Id._ArrayDtor), ex);
         }
+
+        // the call to `__postblit()` should come after the `scope(failure){}` statement
+        auto tmp = postblitCalls.pop();
         postblitCalls.push(new OnScopeStatement(loc, TOK.onScopeFailure, new ExpStatement(loc, ex)));
+        postblitCalls.push(tmp);
     }
 
     void checkShared()
