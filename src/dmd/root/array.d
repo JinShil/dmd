@@ -191,6 +191,17 @@ public:
         return data[--dim];
     }
 
+    size_t indexOf(ref T item) const nothrow pure
+    {
+        size_t i;
+        for(i = 0; i < dim; i++)
+        {
+            if (this[i] == item)
+                return i;
+        }
+        return -1;
+    }
+
     extern (D) inout(T)[] opSlice() inout nothrow pure
     {
         return data[0 .. dim];
