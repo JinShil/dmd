@@ -104,11 +104,6 @@ enum
     RTLSYM_ARRAYCAST,
     RTLSYM_ARRAYEQ,
     RTLSYM_ARRAYEQ2,
-    RTLSYM_ARRAYCMP,            // unused
-    RTLSYM_ARRAYCMP2,           // unused
-    RTLSYM_ARRAYCMPCHAR,        // unused
-    RTLSYM_OBJ_EQ,              // unused
-    RTLSYM_OBJ_CMP,             // unused
 
     RTLSYM_EXCEPT_HANDLER2,
     RTLSYM_EXCEPT_HANDLER3,

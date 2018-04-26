@@ -127,11 +127,6 @@ SYMBOL_MARS(ARRAYSETCTOR,  FLfunc,FREGSAVED,"_d_arraysetctor", 0, t) \
 SYMBOL_MARS(ARRAYCAST,     FLfunc,FREGSAVED,"_d_arraycast", 0, t) \
 SYMBOL_MARS(ARRAYEQ,       FLfunc,FREGSAVED,"_adEq", 0, t) \
 SYMBOL_MARS(ARRAYEQ2,      FLfunc,FREGSAVED,"_adEq2", 0, t) \
-SYMBOL_MARS(ARRAYCMP,      FLfunc,FREGSAVED,"_adCmp", 0, t) \
-SYMBOL_MARS(ARRAYCMP2,     FLfunc,FREGSAVED,"_adCmp2", 0, t) \
-SYMBOL_MARS(ARRAYCMPCHAR,  FLfunc,FREGSAVED,"_adCmpChar", 0, t) \
-SYMBOL_MARS(OBJ_EQ,        FLfunc,FREGSAVED,"_d_obj_eq", 0, t) \
-SYMBOL_MARS(OBJ_CMP,       FLfunc,FREGSAVED,"_d_obj_cmp", 0, t) \
 \
 SYMBOL_Z(EXCEPT_HANDLER2, FLfunc,fregsaved,"_except_handler2", 0, tsclib) \
 SYMBOL_Z(EXCEPT_HANDLER3, FLfunc,fregsaved,"_except_handler3", 0, tsclib) \
