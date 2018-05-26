@@ -7341,6 +7341,35 @@ private extern (C++) final class ExpressionSemanticVisitor : Visitor
         assert(exp.type);
         auto res = exp.op == TOK.assign ? exp.reorderSettingAAElem(sc) : exp;
         checkAssignEscape(sc, res, false);
+
+        if(res.op == TOK.assign)
+        {
+            auto ae = cast(AssignExp)res;
+
+            /* Given the following code:
+             * ---
+             * T[] a;
+             * a.length = x;
+             * ---
+             * Rewrite `a.length = x` to a call to `_setArrayLength(T)(ref T[] a, size_t newLength)`
+             */
+            if (ae.e1.op == TOK.arrayLength)
+            {
+                auto ale = cast(ArrayLengthExp)ae.e1;
+                auto id = Identifier.idPool("__setArrayLength");
+                auto tiargs = new Objects();
+                tiargs.push(ale.e1.type.nextOf());
+                auto ti = new TemplateInstance(ale.loc, id, tiargs);
+                Expression __setArrayLength = new ScopeExp(ale.loc, ti);
+                auto arguments = new Expressions();
+                arguments.push(ale.e1);
+                arguments.push(ae.e2);
+                __setArrayLength = new CallExp(ale.loc, __setArrayLength, arguments);
+                result = expressionSemantic(__setArrayLength, sc);
+                return;
+            }
+        }
+
         result = res;
     }
 

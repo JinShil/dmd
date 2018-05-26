@@ -419,6 +419,8 @@ immutable Msgtable[] msgtable =
     { "FALSE" },
     { "unsigned" },
     { "wchar_t" },
+
+    { "__arraySetLength" },
 ];
 
 
