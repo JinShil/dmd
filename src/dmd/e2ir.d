@@ -2597,32 +2597,6 @@ elem *toElem(Expression e, IRState *irs)
 
             elem *e;
 
-            // Look for array.length = n
-            if (ae.e1.op == TOK.arrayLength)
-            {
-                // Generate:
-                //      _d_arraysetlength(e2, sizeelem, &ale.e1);
-
-                ArrayLengthExp ale = cast(ArrayLengthExp)ae.e1;
-
-                elem *p1 = toElem(ae.e2, irs);
-                elem *p3 = toElem(ale.e1, irs);
-                p3 = addressElem(p3, null);
-                Type t1 = ale.e1.type.toBasetype();
-
-                // call _d_arraysetlengthT(ti, e2, &ale.e1);
-                elem *p2 = getTypeInfo(ae.loc, t1, irs);
-                elem *ep = el_params(p3, p1, p2, null); // c function
-                int r = t1.nextOf().isZeroInit(Loc.initial) ? RTLSYM_ARRAYSETLENGTHT : RTLSYM_ARRAYSETLENGTHIT;
-
-                e = el_bin(OPcall, totym(ae.type), el_var(getRtlsym(r)), ep);
-                toTraceGC(irs, e, ae.loc);
-
-                elem_setLoc(e, ae.loc);
-                result = e;
-                return;
-            }
-
             // Look for array[]=n
             if (ae.e1.op == TOK.slice)
             {
