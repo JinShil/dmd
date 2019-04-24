@@ -1,0 +1,3 @@
+Pascal linkage is now obsolete
+
+Staring with this release, any use of `extern(Pascal)` will result in an error.

@@ -852,14 +852,6 @@
                 "name": "vlinkageWindows"
             },
             {
-                "char": 20,
-                "deco": "VALUE_REMOVED_FOR_TEST",
-                "kind": "variable",
-                "line": 190,
-                "linkage": "pascal",
-                "name": "vlinkagePascal"
-            },
-            {
                 "char": 25,
                 "deco": "VALUE_REMOVED_FOR_TEST",
                 "kind": "variable",
@@ -907,14 +899,6 @@
                 "line": 197,
                 "linkage": "windows",
                 "name": "flinkageWindows"
-            },
-            {
-                "char": 20,
-                "deco": "VALUE_REMOVED_FOR_TEST",
-                "kind": "function",
-                "line": 198,
-                "linkage": "pascal",
-                "name": "flinkagePascal"
             },
             {
                 "char": 25,
