@@ -404,6 +404,7 @@ immutable Msgtable[] msgtable =
     { "isRef" },
     { "isOut" },
     { "isLazy" },
+    { "isScope" },
     { "hasMember" },
     { "identifier" },
     { "getProtection" },

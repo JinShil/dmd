@@ -117,6 +117,7 @@ shared static this()
         "isRef",
         "isOut",
         "isLazy",
+        "isScope",
         "isReturnOnStack",
         "hasMember",
         "identifier",
@@ -722,6 +723,13 @@ Expression semanticTraits(TraitsExp e, Scope* sc)
             return dimError(1);
 
         return isDeclX(d => (d.storage_class & STC.lazy_) != 0);
+    }
+    if (e.ident == Id.isScope)
+    {
+        if (dim != 1)
+            return dimError(1);
+
+        return isDeclX(d => d.isScope());
     }
     if (e.ident == Id.identifier)
     {
